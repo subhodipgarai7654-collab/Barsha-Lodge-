@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 700" width="100%" height="100%" style="background:#ffffff; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <filter id="card-shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000000" flood-opacity="0.1" />
+    </filter>
+  </defs>
+
+  <!-- Outer Card Frame -->
+  <rect x="0" y="0" width="540" height="700" fill="#ffffff" rx="16" stroke="#e5e7eb" stroke-width="1.5" />
+
+  <!-- Top Thin Border -->
+  <line x1="24" y1="22" x2="516" y2="22" stroke="#111827" stroke-width="2" />
+
+  <!-- Amazon Pay Header -->
+  <g transform="translate(270, 48)" text-anchor="middle">
+    <!-- amazon pay text -->
+    <text font-family="'Arial Black', 'Helvetica Neue', sans-serif" font-weight="900" font-size="24" fill="#111827" letter-spacing="-0.5">amazon <tspan fill="#E45B25">pay</tspan></text>
+    <!-- Amazon smile arrow -->
+    <path d="M -45 5 Q 0 16 40 4" fill="none" stroke="#FF9900" stroke-width="3" stroke-linecap="round" />
+    <path d="M 38 1 L 43 5 L 37 8 Z" fill="#FF9900" />
+  </g>
+
+  <!-- Name -->
+  <text x="270" y="106" text-anchor="middle" font-weight="900" font-size="26" fill="#000000" letter-spacing="1.5" font-family="'Arial Black', sans-serif">SUBHODIP  GARAI</text>
+
+  <!-- Dark Banner with Swallowtail -->
+  <g transform="translate(0, 122)">
+    <path d="M 0 0 L 540 0 L 515 22 L 540 44 L 0 44 L 25 22 Z" fill="#111827" />
+    <text x="270" y="29" text-anchor="middle" font-weight="700" font-size="18" fill="#ffffff" letter-spacing="0.5">Scan &amp; Pay using any UPI app</text>
+  </g>
+
+  <!-- Orange Center Block -->
+  <g transform="translate(0, 166)">
+    <rect x="0" y="0" width="540" height="460" fill="#E45B25" />
+
+    <!-- White QR Inner Container -->
+    <rect x="80" y="32" width="380" height="396" fill="#ffffff" rx="6" />
+
+    <!-- QR Code centered inside white container -->
+    <svg x="115" y="48" width="310" height="310" viewBox="0 0 35 35">
+      <path fill="#ffffff" d="M0 0h35v35H0z"/>
+    </svg>
+
+    <!-- UPI Number & ID text inside white card -->
+    <text x="270" y="385" text-anchor="middle" font-weight="800" font-size="20" fill="#111827" letter-spacing="0.5">UPI Number: <tspan font-weight="900">8649883536</tspan></text>
+    <text x="270" y="412" text-anchor="middle" font-weight="600" font-size="17" fill="#4b5563" letter-spacing="0.2">UPI Id: 8649883536@yapl</text>
+  </g>
+
+  <!-- Bottom UPI Logos Bar -->
+  <g transform="translate(0, 642)">
+    <line x1="0" y1="0" x2="540" y2="0" stroke="#f3f4f6" stroke-width="1" />
+    
+    <!-- BHIM UPI -->
+    <g transform="translate(40, 30)">
+      <text font-family="sans-serif" font-weight="900" font-style="italic" font-size="16" fill="#333333">BHIM <tspan fill="#097939">▶</tspan><tspan fill="#E45B25">UPI</tspan></text>
+    </g>
+
+    <!-- Amazon pay badge -->
+    <g transform="translate(195, 30)">
+      <circle cx="12" cy="-5" r="13" fill="#232F3E" />
+      <text x="12" y="-1" text-anchor="middle" font-size="8" font-weight="bold" fill="#FF9900">pay</text>
+    </g>
+
+    <!-- G Pay -->
+    <g transform="translate(250, 30)">
+      <rect x="-2" y="-16" width="28" height="22" rx="11" fill="#f3f4f6" />
+      <text x="12" y="-1" text-anchor="middle" font-weight="bold" font-size="11" fill="#4285F4">G<tspan fill="#EA4335">P</tspan><tspan fill="#FBBC05">a</tspan><tspan fill="#34A853">y</tspan></text>
+    </g>
+
+    <!-- PhonePe -->
+    <g transform="translate(315, 30)">
+      <circle cx="12" cy="-5" r="13" fill="#5f259f" />
+      <text x="12" y="-1" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">पे</text>
+    </g>
+
+    <!-- WhatsApp -->
+    <g transform="translate(365, 30)">
+      <circle cx="12" cy="-5" r="13" fill="#25D366" />
+      <path d="M 6 -9 C 9 -12 15 -12 18 -9 C 20 -6 19 0 16 2 L 17 5 L 14 4 C 12 5 8 4 6 2 C 4 -1 4 -6 6 -9 Z" fill="#ffffff" transform="scale(0.8) translate(3, -4)" />
+    </g>
+
+    <!-- Paytm -->
+    <g transform="translate(420, 30)">
+      <text font-family="sans-serif" font-weight="900" font-size="16" fill="#002E6E">pay<tspan fill="#00BAF2">tm</tspan></text>
+    </g>
+  </g>
+</svg>

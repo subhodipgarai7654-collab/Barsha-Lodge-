@@ -1,0 +1,6 @@
+{
+  "name": "Task Earn Pro",
+  "description": "Complete tasks, earn rewards, and withdraw easily with Task Earn Pro.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

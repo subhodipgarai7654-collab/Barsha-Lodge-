@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Admins helper - includes runtime user email & manager email & admin collection check
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email in ['garaitumpa945@gmail.com', 'subhodipgarai@gmail.com'] ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // 1. Admins collection
+    match /admins/{adminId} {
+      allow get, list: if isAdmin();
+      allow create, update, delete: if isAdmin() && isValidId(adminId);
+    }
+
+    // 2. Rooms collection - Public read for pilgrims/visitors, Admin managed
+    match /rooms/{roomId} {
+      allow get, list: if true;
+      allow create: if isAdmin() && isValidId(roomId) &&
+        incoming().keys().hasAll(['room_number', 'name', 'price_per_night', 'status']) &&
+        incoming().room_number is string && incoming().room_number.size() <= 20 &&
+        incoming().name is string && incoming().name.size() <= 100 &&
+        incoming().price_per_night is number && incoming().price_per_night > 0 &&
+        incoming().status in ['Available', 'Booked', 'Occupied', 'Maintenance'];
+
+      allow update: if isAdmin() && isValidId(roomId) &&
+        incoming().keys().hasAll(['room_number', 'name', 'price_per_night', 'status']) &&
+        incoming().room_number is string && incoming().room_number.size() <= 20 &&
+        incoming().name is string && incoming().name.size() <= 100 &&
+        incoming().price_per_night is number && incoming().price_per_night > 0 &&
+        incoming().status in ['Available', 'Booked', 'Occupied', 'Maintenance'];
+
+      allow delete: if isAdmin() && isValidId(roomId);
+    }
+
+    // 3. Bookings collection - Guests can submit reservations, Admins manage all
+    match /bookings/{bookingId} {
+      allow get: if isAdmin() || (isSignedIn() && (resource.data.email == request.auth.token.email || resource.data.guest_name == request.auth.token.name));
+      allow list: if isAdmin() || (isSignedIn() && resource.data.email == request.auth.token.email);
+
+      // Public reservation booking submission
+      allow create: if isValidId(bookingId) &&
+        incoming().keys().hasAll(['booking_id', 'guest_name', 'mobile_number', 'check_in_date', 'check_out_date', 'total_amount', 'status']) &&
+        incoming().booking_id is string && incoming().booking_id.size() <= 30 &&
+        incoming().guest_name is string && incoming().guest_name.size() <= 100 &&
+        incoming().mobile_number is string && incoming().mobile_number.size() <= 20 &&
+        incoming().check_in_date is string && incoming().check_in_date.size() == 10 &&
+        incoming().check_out_date is string && incoming().check_out_date.size() == 10 &&
+        incoming().total_amount is number && incoming().total_amount >= 0 &&
+        incoming().status in ['Pending', 'Confirmed', 'Checked-in', 'Checked-out', 'Cancelled'];
+
+      allow update: if isAdmin() && isValidId(bookingId);
+      allow delete: if isAdmin() && isValidId(bookingId);
+    }
+
+    // 4. Website Settings collection - Public read for hotel website contact & pricing, Admin write
+    match /website_settings/{settingKey} {
+      allow get, list: if true;
+      allow create, update: if isAdmin() && isValidId(settingKey) &&
+        incoming().keys().hasAll(['key', 'value']) &&
+        incoming().key is string && incoming().key.size() <= 100 &&
+        incoming().value is string && incoming().value.size() <= 5000;
+      allow delete: if isAdmin() && isValidId(settingKey);
+    }
+
+    // 5. Users collection - Guests can read/write their own profile, Admins have full access
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // 6. AI Knowledge Base collection - Public read for Barsha AI, Admin write
+    match /ai_knowledge_base/{docId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin() && isValidId(docId);
+    }
+  }
+}
