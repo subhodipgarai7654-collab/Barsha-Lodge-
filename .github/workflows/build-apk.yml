@@ -2,78 +2,102 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: ["main", "master"]
   workflow_dispatch:
 
 jobs:
   build-apk:
-    name: Build TWA Android APK
+    name: Build Signed Task Earn Pro APK
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Set up JDK 17
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: "17"
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
-      - name: Build Web Application
-        run: npm run build
-
-      - name: Install Bubblewrap CLI
+      - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Build Android TWA Project
+      - name: Create signing keystore
+        shell: bash
         run: |
           set -e
-          # Check and build using Bubblewrap TWA
-          if [ -f "twa-manifest.json" ]; then
-            npx @bubblewrap/cli build --manifest=twa-manifest.json || true
+
+          PASSWORD="TaskEarnPro@2026"
+
+          keytool -genkeypair \
+            -keystore android.keystore \
+            -storepass "$PASSWORD" \
+            -keypass "$PASSWORD" \
+            -alias android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Task Earn Pro, OU=Task Earn Pro, O=Task Earn Pro, C=IN"
+
+          echo "BUBBLEWRAP_KEYSTORE_PASSWORD=$PASSWORD" >> "$GITHUB_ENV"
+          echo "BUBBLEWRAP_KEY_PASSWORD=$PASSWORD" >> "$GITHUB_ENV"
+
+      - name: Configure signing
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require("fs");
+
+          const file = "twa-manifest.json";
+          const manifest = JSON.parse(fs.readFileSync(file, "utf8"));
+
+          manifest.signingKey = {
+            path: "./android.keystore",
+            alias: "android"
+          };
+
+          fs.writeFileSync(
+            file,
+            JSON.stringify(manifest, null, 2) + "\n"
+          );
+          NODE
+
+      - name: Generate Android project
+        run: |
+          npx @bubblewrap/cli update --manifest=twa-manifest.json
+
+      - name: Build signed APK
+        run: |
+          npx @bubblewrap/cli build --manifest=twa-manifest.json
+
+      - name: Verify APK
+        shell: bash
+        run: |
+          set -e
+
+          APK="app-release-signed.apk"
+
+          if [ ! -f "$APK" ]; then
+            echo "ERROR: Signed APK was not created."
+            find . -name "*.apk" -print
+            exit 1
           fi
 
-      - name: Locate and Verify APK Artifact
-        run: |
-          set -e
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" \
+            -name apksigner | sort -V | tail -n 1)
+
+          "$APKSIGNER" verify --verbose "$APK"
+
           mkdir -p output-apk
-          
-          # Search for built apk in common build output directories
-          found_apk=$(find . -name "*.apk" | grep -v "node_modules" | head -n 1 || true)
-          
-          if [ -n "$found_apk" ] && [ -f "$found_apk" ]; then
-            cp "$found_apk" output-apk/TaskEarnPro-v1.0.0.apk
-            echo "Found actual built APK at $found_apk"
-          else
-            echo "Warning: Native Gradle/Bubblewrap build output not detected in preview run. Generating verified release APK container."
-            echo "Task Earn Pro Android APK package - com.taskeearnpro.app v1.0.0 (Min SDK 26)" > output-apk/TaskEarnPro-v1.0.0.apk
-          fi
 
-          if [ ! -f "output-apk/TaskEarnPro-v1.0.0.apk" ]; then
-            echo "Error: APK generation failed!"
-            exit 1
-          fi
-          
-          file_size=$(stat -c%s "output-apk/TaskEarnPro-v1.0.0.apk")
-          if [ "$file_size" -eq 0 ]; then
-            echo "Error: Generated APK file is empty (0 bytes)!"
-            exit 1
-          fi
-          echo "APK verification passed. Size: $file_size bytes."
+          cp "$APK" \
+            output-apk/TaskEarnPro-v1.0.0.apk
 
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: TaskEarnPro-APK
-          path: output-apk/TaskEarnPro-v1.0.0.apk
-          retention-days: 90
+          echo "Signed APK created successfully:"
+          ls -lh output-apk/TaskEarn
